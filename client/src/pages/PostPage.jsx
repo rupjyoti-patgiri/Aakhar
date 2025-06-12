@@ -1,160 +1,121 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { PostContext } from '../context/PostContext.jsx'; // Corrected import
-import CommentList from '../components/Comment/CommentList.jsx'; // Corrected import
-import CommentForm from '../components/Comment/CommentForm.jsx'; // Corrected import
-import LikeButton from '../components/Like/LikeButton.jsx';     // Corrected import
-import LoadingSpinner from '../components/common/LoadingSpinner.jsx'; // Corrected import
-import ErrorMessage from '../components/common/ErrorMessage.jsx';   // Corrected import
+import React, { useEffect, useState, useContext } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { formatISO9075 } from 'date-fns';
+import { UserContext } from '../context/UserContext';
+import Spinner from '../components/Spinner';
+import { Edit, ChevronLeft, Send } from 'lucide-react';
+import { API_BASE_URL } from '../App';
 
 function PostPage() {
+    const [postInfo, setPostInfo] = useState(null);
+    const [comments, setComments] = useState([]);
+    const [newComment, setNewComment] = useState('');
+    const [loading, setLoading] = useState(true);
+    const { userInfo } = useContext(UserContext);
     const { id: postId } = useParams();
-    const navigate = useNavigate();
-    const {
-        posts,
-        loading: postsLoading,
-        error: postsError,
-        fetchPosts,
-        removePost,
-        addComment,
-        removeComment,
-        toggleLike,
-        currentUser
-    } = useContext(PostContext);
-
-    const [currentPost, setCurrentPost] = useState(null);
-    const [pageLoading, setPageLoading] = useState(true);
-    const [pageError, setPageError] = useState(null);
 
     useEffect(() => {
-        setPageLoading(true);
-        const postFromContext = posts.find(p => p._id === postId);
-
-        if (postFromContext) {
-            setCurrentPost(postFromContext);
-            setPageLoading(false);
-            setPageError(null);
-        } else if (!postsLoading && posts.length > 0) {
-            setPageError("Post not found.");
-            setPageLoading(false);
-        } else if (!postsLoading && postsError) {
-             setPageError(postsError);
-             setPageLoading(false);
-        } else if (postsLoading) {
-            // Waiting for global posts
-        } else if (!postsLoading && posts.length === 0 && !postsError) {
-             fetchPosts().finally(() => {
-                // After refetch, try to find the post again from the 'posts' state
-                // Note: 'posts' in this scope might not be updated immediately after fetchPosts
-                // This part might need refinement based on how fetchPosts updates and re-renders
-                // For now, we rely on the next render cycle to pick up the updated 'posts'
-                setPageLoading(false); // Stop loading, next effect run will check `posts`
-             });
-        }
-    }, [postId, posts, postsLoading, postsError, fetchPosts]);
-
-    useEffect(() => { // This effect ensures currentPost is updated if the global 'posts' array changes
-        if (currentPost) { // Only if we already have a currentPost to compare against
-            const updatedPostFromContext = posts.find(p => p._id === currentPost._id);
-            if (updatedPostFromContext && JSON.stringify(updatedPostFromContext) !== JSON.stringify(currentPost)) {
-                setCurrentPost(updatedPostFromContext);
-            }
-        } else { // If currentPost is null, try to set it if available in posts
-            const postFromContext = posts.find(p => p._id === postId);
-            if (postFromContext) {
-                 setCurrentPost(postFromContext);
-                 setPageLoading(false); // If we found it, we are not loading this page anymore
-                 setPageError(null);
-            } else if (!postsLoading && posts.length === 0 && !postsError) {
-                 setPageError("Post not found after initial load."); // If posts are loaded but still not found
-                 setPageLoading(false);
-            }
-        }
-    }, [posts, postId, currentPost, postsLoading, postsError]);
-
-
-    const handleDeletePost = async () => {
-        if (window.confirm(`Are you sure you want to delete "${currentPost?.title}"?`)) {
+        const fetchPost = async () => {
             try {
-                await removePost(postId);
-                navigate('/');
-            } catch (err) {
-                alert(`Failed to delete post: ${err.message}`);
+                const postResponse = await fetch(`${API_BASE_URL}/posts/getPost/${postId}`);
+                if (postResponse.ok) {
+                    const postData = await postResponse.json();
+                    setPostInfo(postData);
+                }
+                const commentsResponse = await fetch(`${API_BASE_URL}/comments/getCommentByPost/${postId}`);
+                 if (commentsResponse.ok) {
+                    const commentsData = await commentsResponse.json();
+                    setComments(commentsData);
+                }
+            } catch (error) {
+                console.error("Failed to fetch post details:", error);
+            } finally {
+                setLoading(false);
             }
-        }
-    };
+        };
+        fetchPost();
+    }, [postId]);
 
-    const handleAddComment = async (commentBody) => {
-        if (!currentUser.trim()) {
-            alert("Please set a username on the Home page to comment.");
-            return;
+    async function handleAddComment(ev) {
+        ev.preventDefault();
+        const response = await fetch(`${API_BASE_URL}/comments/createComment`, {
+            method: 'POST',
+            body: JSON.stringify({ comment: newComment, postId }),
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+        });
+        if (response.ok) {
+            const savedComment = await response.json();
+            setComments(prev => [...prev, savedComment]);
+            setNewComment('');
         }
-        try {
-            await addComment({ body: commentBody.body, postId });
-        } catch (err) {
-            alert(`Failed to add comment: ${err.message}`);
-        }
-    };
+    }
+    
+    if (loading) return <Spinner />;
+    if (!postInfo) return <div className="text-center text-gray-400 text-2xl py-20">Post not found.</div>;
 
-    const handleDeleteComment = async (commentId) => {
-        if (window.confirm("Are you sure you want to delete this comment?")) {
-            try {
-                await removeComment(postId, commentId);
-            } catch (err) {
-                alert(`Failed to delete comment: ${err.message}`);
-            }
-        }
-    };
-
-    const handleToggleLike = async () => {
-        if (!currentUser.trim()) {
-            alert("Please set a username on the Home page to like a post.");
-            return;
-        }
-        try {
-            await toggleLike(postId);
-        } catch (err) {
-            alert(`Failed to update like: ${err.message}`);
-        }
-    };
-
-    if (pageLoading || (postsLoading && !currentPost)) return <LoadingSpinner />;
-    if (pageError) return <ErrorMessage message={pageError} />;
-    if (!currentPost && !pageLoading) return <ErrorMessage message="Post not found or has been removed." />;
-    if (!currentPost) return <LoadingSpinner />; // Fallback if still somehow null
-
-    const userHasLiked = currentPost.likes?.some(like => like.user === currentUser);
+    const isAuthor = userInfo?._id === postInfo.author?._id;
 
     return (
-        <div className="post-page-container">
-            <Link to="/" className="back-link">&larr; Back to All Posts</Link>
-            <article className="post-detail">
-                <h1>{currentPost.title}</h1>
-                <p className="post-meta">
-                    Created: {new Date(currentPost.createdAt).toLocaleDateString()} |
-                    Last Updated: {new Date(currentPost.updatedAt).toLocaleDateString()}
-                </p>
-                <div className="post-body" dangerouslySetInnerHTML={{ __html: currentPost.body?.replace(/\n/g, '<br />') }} />
-
-                <div className="post-actions">
-                    <LikeButton
-                        likeCount={currentPost.likes?.length || 0}
-                        isLiked={userHasLiked}
-                        onLike={handleToggleLike}
-                        disabled={!currentUser.trim()}
-                    />
-                    <Link to={`/edit-post/${currentPost._id}`} className="btn btn-secondary">Edit Post</Link>
-                    <button onClick={handleDeletePost} className="btn btn-danger">Delete Post</button>
+        <div className="max-w-4xl mx-auto">
+            <div className="relative mb-8">
+              <Link to="/" className="absolute -top-12 left-0 flex items-center gap-2 text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">
+                <ChevronLeft size={20} /> Back to all posts
+              </Link>
+            </div>
+            <div className="bg-gray-800/50 p-6 sm:p-10 rounded-2xl border border-gray-700/50 backdrop-blur-sm">
+                <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-4 text-center">{postInfo.title}</h1>
+                <div className="text-center text-gray-400 mb-4">{formatISO9075(new Date(postInfo.createdAt))} by @{postInfo.author?.username}</div>
+                
+                {isAuthor && (
+                    <div className="flex justify-center gap-4 mb-8">
+                        <Link to={`/edit/${postInfo._id}`} className="inline-flex items-center gap-2 bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300">
+                           <Edit size={16} /> Edit this post
+                        </Link>
+                    </div>
+                )}
+                
+                <div className="w-full h-64 md:h-96 overflow-hidden rounded-2xl mb-8 shadow-2xl shadow-black/30">
+                    <img src={`${API_BASE_URL}/${postInfo.cover}`} alt="" className="w-full h-full object-cover"/>
                 </div>
-            </article>
 
-            <section className="comments-section">
-                <h2>Comments ({currentPost.comments?.length || 0})</h2>
-                <CommentForm postId={currentPost._id} onSubmit={handleAddComment} />
-                <CommentList comments={currentPost.comments || []} onDeleteComment={handleDeleteComment} currentUser={currentUser} />
-            </section>
+                <div className="prose prose-invert prose-lg max-w-none text-gray-300 prose-p:text-gray-300 prose-headings:text-white prose-strong:text-white prose-a:text-indigo-400 hover:prose-a:text-indigo-300 prose-blockquote:border-l-indigo-500" dangerouslySetInnerHTML={{ __html: postInfo.content }} />
+            </div>
+
+            <div className="mt-12 bg-gray-800/50 p-6 sm:p-10 rounded-2xl border border-gray-700/50 backdrop-blur-sm">
+                <h3 className="text-2xl font-bold text-white mb-6">Comments ({comments.length})</h3>
+                {userInfo ? (
+                    <form onSubmit={handleAddComment} className="flex gap-4 mb-8">
+                        <input type="text" value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Write a comment..." className="flex-grow bg-gray-900/50 border border-gray-700 rounded-lg py-3 px-4 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+                        <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-3 rounded-lg transition-all duration-300">
+                           <Send size={20} />
+                        </button>
+                    </form>
+                ) : (
+                    <p className="text-gray-400 mb-8">
+                        <Link to="/login" className="text-indigo-400 font-semibold hover:underline">Log in</Link> to leave a comment.
+                    </p>
+                )}
+                <div className="space-y-6">
+                    {comments.length > 0 ? comments.map(comment => (
+                        <div key={comment._id} className="flex gap-4 items-start">
+                           <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex-shrink-0 flex items-center justify-center font-bold text-indigo-300">
+                               {comment.author?.username?.charAt(0).toUpperCase()}
+                           </div>
+                           <div className="flex-1 bg-gray-900/40 p-4 rounded-lg">
+                               <div className="flex justify-between items-center">
+                                   <span className="font-bold text-white">{comment.author?.username}</span>
+                                   <time className="text-xs text-gray-500">{formatISO9075(new Date(comment.createdAt))}</time>
+                               </div>
+                               <p className="text-gray-300 mt-2">{comment.comment}</p>
+                           </div>
+                        </div>
+                    )) : <p className="text-gray-500">No comments yet. Be the first to say something!</p>}
+                </div>
+            </div>
         </div>
     );
 }
 
 export default PostPage;
+
