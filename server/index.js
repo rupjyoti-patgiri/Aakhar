@@ -8,12 +8,25 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(
-  cors({
-    origin: "http://localhost:5173",   // ✅ frontend origin
-    credentials: true,                 // ✅ allow cookies / sessions
-  })
-);
+const allowedOrigins = [
+    'http://localhost:5173',               // for local development
+    'https://your-frontend.vercel.app'     // ✅ replace with actual Vercel frontend URL
+  ];
+  
+  app.use(
+    cors({
+      origin: function (origin, callback) {
+        // allow requests with no origin (like mobile apps, curl, postman)
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
+      credentials: true
+    })
+  );
+
 
 
 //import routes from comment API

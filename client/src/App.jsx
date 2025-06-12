@@ -9,8 +9,7 @@ import PostPage from './pages/PostPage';
 import EditPostPage from './pages/EditPostPage';
 
 // Define the base URL for the API
-export const API_BASE_URL = `http://localhost:4000/api/v1
-`;
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function App() {
   return (
