@@ -1,0 +1,21 @@
+// config/cloudinary.js
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Export both cloudinary and (optionally) the storage adapter
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'blog_avatars',
+    format: async (req, file) => file.mimetype.split('/')[1],
+    public_id: (req, file) => `avatar-${req.user.id}`,
+  },
+});
+
+module.exports = { cloudinary, storage };
