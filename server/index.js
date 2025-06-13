@@ -10,7 +10,7 @@ app.use(express.urlencoded({ extended: true }));
 
 const allowedOrigins = [
     'http://localhost:5173',               // for local development
-    'https://aakhar.vercel.app/'     // for production deployment
+    'https://aakhar.vercel.app'     // for production deployment
   ];
   
   app.use(
