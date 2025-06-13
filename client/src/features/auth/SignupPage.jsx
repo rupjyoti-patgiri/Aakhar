@@ -36,7 +36,7 @@ export default function SignupPage() {
                 // apiResponseData is the data returned from the backend, e.g., { message: '...' }
                 toast.success(apiResponseData.message);
                 // We use `formData.email` which is guaranteed to be correct here.
-                navigate(`/api/v1/verify-otp?email=${formData.email}`);
+                navigate(`/verify-otp?email=${formData.email}`);
             }
         });
     };
