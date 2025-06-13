@@ -1,29 +1,48 @@
-import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import Layout from './components/Layout';
+import { useAuthStore } from './store/authStore';
+import { useEffect } from 'react';
+import Layout from './components/shared/Layout';
+import ProtectedRoute from './components/shared/ProtectedRoute';
 import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
+import LoginPage from './features/auth/LoginPage';
+import SignupPage from './features/auth/SignupPage';
+import VerifyOtpPage from './features/auth/VerifyOtpPage';
+import SinglePostPage from './pages/SinglePostPage';
+import AdminPage from './pages/AdminPage';
+import ProfilePage from './pages/ProfilePage';
 import CreatePostPage from './pages/CreatePostPage';
-import PostPage from './pages/PostPage';
-import EditPostPage from './pages/EditPostPage';
-
-// Define the base URL for the API
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import RoleRequestPage from './pages/RoleRequestPage';
 
 function App() {
+  const { token, fetchUser } = useAuthStore();
+
+  useEffect(() => {
+    if (token) {
+      fetchUser();
+    }
+  }, [token, fetchUser]);
+
   return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route index element={<HomePage />} />
+    <Layout>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/create" element={<CreatePostPage />} />
-        <Route path="/post/:id" element={<PostPage />} />
-        <Route path="/edit/:id" element={<EditPostPage />} />
-      </Route>
-    </Routes>
-  );
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/verify-otp" element={<VerifyOtpPage />} />
+        <Route path="/post/:id" element={<SinglePostPage />} />
+
+        {/* Protected Routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/create-post" element={<CreatePostPage roles={['author', 'admin']} />} />
+          <Route path="/request-author-role" element={<RoleRequestPage roles={['reader']} />} />
+          <Route path="/admin" element={<AdminPage roles={['admin']} />} />
+        </Route>
+
+      </Routes>
+    </Layout>
+  )
 }
 
 export default App;
