@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate, Link } from 'react-router-dom';
-import { toast } from 'sonner';
+import toast from 'react-hot-toast';
 import apiClient from '../../api/api';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { motion } from 'framer-motion';
 
 const signupUser = async (userData) => {
-    const { data } = await apiClient.post('/api/v1/auth/signup', userData);
+    const { data } = await apiClient.post('/auth/signup', userData);
     return data;
 };
 
@@ -18,21 +18,27 @@ export default function SignupPage() {
     const navigate = useNavigate();
     const { register, handleSubmit, formState: { errors } } = useForm();
 
+    // 1. We simplify the useMutation hook declaration.
+    // The onSuccess logic will be handled below, where we have the correct data scope.
     const mutation = useMutation({
         mutationFn: signupUser,
-        onSuccess: (data) => {
-            toast.success(data.message);
-            navigate(`/api/v1/verify-otp?email=${watch('email')}`);
-        },
         onError: (error) => {
             toast.error(error.response?.data?.message || 'Signup failed.');
         }
     });
 
-    const { watch } = useForm();
-
-    const onSubmit = (data) => {
-        mutation.mutate(data);
+    // 2. The onSubmit function is updated to handle the redirect.
+    const onSubmit = (formData) => {
+        // `formData` here is the object with the user's input, e.g., { email: 'user@test.com', ... }
+        // We call `mutate` and pass a second argument for specific options for THIS mutation call.
+        mutation.mutate(formData, {
+            onSuccess: (apiResponseData) => {
+                // apiResponseData is the data returned from the backend, e.g., { message: '...' }
+                toast.success(apiResponseData.message);
+                // We use `formData.email` which is guaranteed to be correct here.
+                navigate(`/verify-otp?email=${formData.email}`);
+            }
+        });
     };
 
     return (
@@ -48,6 +54,7 @@ export default function SignupPage() {
                     <CardDescription>Enter your details to get started.</CardDescription>
                 </CardHeader>
                 <CardContent>
+                    {/* The form itself remains unchanged */}
                     <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="username">Username</Label>
