@@ -17,7 +17,7 @@ function PostPage() {
     useEffect(() => {
         const fetchPost = async () => {
             try {
-                const postResponse = await fetch(`${API_BASE_URL}/posts/getPost/${postId}`);
+                const postResponse = await fetch(`${API_BASE_URL}/api/v1/posts/getPost/${postId}`);
                 if (postResponse.ok) {
                     const postData = await postResponse.json();
                     setPostInfo(postData);
@@ -38,7 +38,7 @@ function PostPage() {
 
     async function handleAddComment(ev) {
         ev.preventDefault();
-        const response = await fetch(`${API_BASE_URL}/comments/createComment`, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/comments/createComment`, {
             method: 'POST',
             body: JSON.stringify({ comment: newComment, postId }),
             headers: { 'Content-Type': 'application/json' },

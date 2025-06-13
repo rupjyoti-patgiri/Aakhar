@@ -11,7 +11,7 @@ export function UserContextProvider({ children }) {
         const fetchProfile = async () => {
             try {
                 // You should use credentials 'include' if your server uses cookies for sessions
-                const response = await fetch(`${API_BASE_URL}/users/me`, {
+                const response = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
                     credentials: 'include',
                 });
                 if (response.ok) {

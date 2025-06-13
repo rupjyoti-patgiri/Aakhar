@@ -15,7 +15,7 @@ function RegisterPage() {
         setError('');
         setSuccess('');
         try {
-             const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+             const response = await fetch(`${API_BASE_URL}/api/v1/auth/signup`, {
                 method: 'POST',
                 body: JSON.stringify({ username, email, password }),
                 headers: { 'Content-Type': 'application/json' },

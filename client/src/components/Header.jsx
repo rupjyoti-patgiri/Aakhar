@@ -9,7 +9,7 @@ function Header() {
     const navigate = useNavigate();
     
     async function logout() {
-        const response = await fetch(`${API_BASE_URL}/api/logout`, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
             method: 'GET',
             credentials: 'include',
         });

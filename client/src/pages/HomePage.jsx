@@ -19,7 +19,7 @@ function HomePage() {
     useEffect(() => {
         const fetchPosts = async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/posts/getPosts`);
+                const response = await fetch(`${API_BASE_URL}/api/v1/posts/getPosts`);
                 if (response.ok) {
                     const postsData = await response.json();
                     setPosts(postsData);

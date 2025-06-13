@@ -14,7 +14,7 @@ function EditPostPage() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetch(`${API_BASE_URL}/posts/getPost/${postId}`)
+        fetch(`${API_BASE_URL}/api/v1/posts/getPost/${postId}`)
             .then(response => response.json())
             .then(postInfo => {
                 setTitle(postInfo.title);
@@ -33,14 +33,14 @@ function EditPostPage() {
             data.set('file', files[0]);
         }
 
-        const response = await fetch(`${API_BASE_URL}/posts/updatePost/${postId}`, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/posts/updatePost/${postId}`, {
             method: 'PUT',
             body: data,
             credentials: 'include',
         });
 
         if (response.ok) {
-            navigate(`/posts/getPost/${postId}`);
+            navigate(`/api/v1/posts/getPost/${postId}`);
         } else {
              setError('Failed to update post.');
         }

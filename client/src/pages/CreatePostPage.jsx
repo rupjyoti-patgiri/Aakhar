@@ -24,7 +24,7 @@ function CreatePostPage() {
         }
 
         try {
-             const response = await fetch(`${API_BASE_URL}/posts/createPost`, {
+             const response = await fetch(`${API_BASE_URL}/api/v1/posts/createPost`, {
                 method: 'POST',
                 body: data,
                 credentials: 'include',

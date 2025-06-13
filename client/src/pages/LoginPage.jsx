@@ -15,7 +15,7 @@ function LoginPage() {
         ev.preventDefault();
         setError('');
         try {
-            const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
                 method: 'POST',
                 body: JSON.stringify({ email, password }),
                 headers: { 'Content-Type': 'application/json' },
