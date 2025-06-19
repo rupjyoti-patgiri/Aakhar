@@ -13,12 +13,12 @@ import { Button } from '../../components/ui/button';
 import { Skeleton } from '../../components/ui/skeleton';
 
 const fetchRequests = async () => {
-    const { data } = await apiClient.get('/api/v1/requests');
+    const { data } = await apiClient.get('/requests');
     return data;
 };
 
 const processRequest = async ({ requestId, status }) => {
-    const { data } = await apiClient.put(`/api/v1/requests/${requestId}/process`, { status });
+    const { data } = await apiClient.put(`/requests/${requestId}/process`, { status });
     return data;
 };
 

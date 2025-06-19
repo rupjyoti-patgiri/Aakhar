@@ -1,40 +1,48 @@
-// import the models
-const Comment = require('../../models/Comment');  // Two dots, not one!
+const Comment = require('../../models/Comment');
 const Post = require('../../models/Post');
 
-// define route handler
 exports.createComment = async (req, res) => {
     try {
-        // extract user and body from request body
-        const {user, body, postId} = req.body;
-        // create new comment object and insert in DB
-        const comment = new Comment({user, body, postId});
+        const { user, body, postId } = req.body;
+        
+        // The user ID should come from the authenticated request for security
+        // But your model uses a username string, so we'll stick to that for now.
+        // const authorId = req.user.id; 
 
+        const comment = new Comment({ user, body, postId });
         const savedComment = await comment.save();
-        // push the comment on the post associated with the comment
-        const updatedPost = await Post.findByIdAndUpdate(postId, { $push: { comments: savedComment._id } }, {new: true})
-                            .populate('comments')
-                            .exec();
 
-        // send a json response with a success flag
-        // res.status(200).json(
-        //     {
-        //         success: true,
-        //         data: response,
-        //         message: "Comment created successfully!"
-        //     }
-        // );
-        res.json({
-            post: updatedPost,
+        // Find the post and add the new comment's ID to its comments array
+        const post = await Post.findByIdAndUpdate(
+            postId, 
+            { $push: { comments: savedComment._id } }, 
+            { new: true } // This option returns the updated document
+        );
+
+        // **THE CRITICAL FIX IS HERE**
+        // We must re-populate everything the frontend expects, just like getPostById
+        const updatedAndPopulatedPost = await Post.findById(post._id)
+            .populate('author', 'username avatar.imageUrl')
+            .populate({
+                path: 'comments',
+                populate: {
+                    path: 'user',
+                    select: 'username avatar.imageUrl _id' // Also select the ID
+                }
+            })
+            .populate('likes');
+
+        res.status(201).json({
+            success: true,
+            data: updatedAndPopulatedPost,
+            message: "Comment created successfully!"
         });
+
     } catch (error) {
         console.error(error);
-        console.log(error);
-        res.status(500)
-        .json ({
+        return res.status(500).json({
             success: false,
-            data: "internal server error",
-            message:error.message
-        })
+            message: "Internal server error while creating comment."
+        });
     }
-}
+};

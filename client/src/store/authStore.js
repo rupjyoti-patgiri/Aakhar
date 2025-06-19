@@ -17,7 +17,7 @@ export const useAuthStore = create(
       },
       fetchUser: async () => {
         try {
-          const response = await apiClient.get('/api/v1/users/me');
+          const response = await apiClient.get('/users/me');
           set({ user: response.data.data });
         } catch (error) {
           console.error("Failed to fetch user. Logging out.", error);

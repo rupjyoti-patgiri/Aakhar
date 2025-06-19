@@ -11,7 +11,7 @@ import { Button } from '../../components/ui/button';
 import { motion } from 'framer-motion';
 
 const createPost = async (postData) => {
-    const { data } = await apiClient.post('/api/v1/posts/createPost', postData);
+    const { data } = await apiClient.post('/posts/createPost', postData);
     return data;
 };
 

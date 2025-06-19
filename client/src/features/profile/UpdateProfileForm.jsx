@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar'
 import { useState } from 'react';
 
 const updateDetails = async (formData) => {
-    const { data } = await apiClient.put('/api/v1/users/updatedetails', formData, {
+    const { data } = await apiClient.put('/users/updatedetails', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
         },

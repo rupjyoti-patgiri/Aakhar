@@ -21,12 +21,12 @@ import { MoreHorizontal } from 'lucide-react';
 import { Skeleton } from '../../components/ui/skeleton';
 
 const fetchUsers = async () => {
-    const { data } = await apiClient.get('/api/v1/users');
+    const { data } = await apiClient.get('/users');
     return data;
 };
 
 const updateUserRole = async ({ userId, role }) => {
-    const { data } = await apiClient.put(`/api/v1/users/${userId}/role`, { role });
+    const { data } = await apiClient.put(`/users/${userId}/role`, { role });
     return data;
 };
 

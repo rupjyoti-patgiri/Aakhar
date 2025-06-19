@@ -5,7 +5,7 @@ const AdminDashboard = () => {
     return (
         <div className="space-y-12">
             <div>
-                <h2 className="text-2xl font-bold mb-4">Author Requests</h2>
+                <h2 className="text-2xl font-bold mb-4">Pending Author Requests</h2>
                 <RequestsTable />
             </div>
             <div>

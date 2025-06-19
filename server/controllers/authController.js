@@ -37,7 +37,12 @@ exports.signup = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        const otp = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false });
+        const otp = otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            lowerCaseAlphabets: false,
+            specialChars: false,
+        });
+        
         otpStore[email] = { otp, expires: Date.now() + 10 * 60 * 1000 }; // OTP valid for 10 minutes
 
         const newUser = new User({

@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { motion } from 'framer-motion';
 
 const verifyOtp = async (data) => {
-    const response = await apiClient.post('/api/v1/auth/verify-otp', data);
+    const response = await apiClient.post('/auth/verify-otp', data);
     return response.data;
 };
 

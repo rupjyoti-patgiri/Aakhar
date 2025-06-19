@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
-import { useNavigate, Link } from 'react-router-dom';
-import { toast } from 'sonner';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import apiClient from '../../api/api';
 import { useAuthStore } from '../../store/authStore';
 import { Button } from '../../components/ui/button';
@@ -11,22 +11,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { motion } from 'framer-motion';
 
 const loginUser = async (credentials) => {
-    const { data } = await apiClient.post('/api/v1/auth/login', credentials);
+    const { data } = await apiClient.post('/auth/login', credentials);
     return data;
 };
 
 export default function LoginPage() {
     const navigate = useNavigate();
-    const { setToken, fetchUser } = useAuthStore();
+    const location = useLocation();
+    const { setToken } = useAuthStore();
     const { register, handleSubmit, formState: { errors } } = useForm();
+
+    // FIXED: Get the "from" location, so we can redirect the user back after login.
+    const from = location.state?.from?.pathname || "/";
 
     const mutation = useMutation({
         mutationFn: loginUser,
         onSuccess: (data) => {
             toast.success('Logged in successfully!');
             setToken(data.token);
-            fetchUser();
-            navigate('/');
+            // FIXED: Navigate to the page the user was trying to access, or the homepage.
+            navigate(from, { replace: true });
         },
         onError: (error) => {
             toast.error(error.response?.data?.message || 'Login failed. Please try again.');

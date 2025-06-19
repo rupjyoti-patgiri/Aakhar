@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { motion } from 'framer-motion';
 
 const signupUser = async (userData) => {
-    const { data } = await apiClient.post('/api/v1/auth/signup', userData);
+    const { data } = await apiClient.post('/auth/signup', userData);
     return data;
 };
 

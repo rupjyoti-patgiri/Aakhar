@@ -4,7 +4,7 @@ import PostCard, { PostCardSkeleton } from '../features/posts/PostCard';
 
 const fetchPosts = async () => {
     // Note: your backend route returns { posts: [...] }
-    const { data } = await apiClient.get('/api/v1/posts/getPosts');
+    const { data } = await apiClient.get('/posts/getPosts');
     return data.posts;
 };
 

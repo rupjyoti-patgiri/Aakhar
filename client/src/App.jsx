@@ -17,7 +17,7 @@ function App() {
   const { token, fetchUser } = useAuthStore();
 
   useEffect(() => {
-    if (token) {
+    if (token && !useAuthStore.getState().user) {
       fetchUser();
     }
   }, [token, fetchUser]);
@@ -32,14 +32,28 @@ function App() {
         <Route path="/verify-otp" element={<VerifyOtpPage />} />
         <Route path="/post/:id" element={<SinglePostPage />} />
 
-        {/* Protected Routes */}
+        {/* These routes require the user to be logged in */}
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/create-post" element={<CreatePostPage roles={['author', 'admin']} />} />
-          <Route path="/request-author-role" element={<RoleRequestPage roles={['reader']} />} />
-          <Route path="/admin" element={<AdminPage roles={['admin']} />} />
-        </Route>
+          
+          {/* This route is further protected and only accessible by users with the 'author' or 'admin' role */}
+          <Route element={<ProtectedRoute roles={['author', 'admin']} />}>
+            <Route path="/create-post" element={<CreatePostPage />} />
+          </Route>
+          
+          {/* Only accessible by 'reader' role */}
+          <Route element={<ProtectedRoute roles={['reader']} />}>
+            <Route path="/request-author-role" element={<RoleRequestPage />} />
+          </Route>
 
+          {/* Only accessible by 'admin' role */}
+          <Route element={<ProtectedRoute roles={['admin']} />}>
+             <Route path="/admin" element={<AdminPage />} />
+          </Route>
+        </Route>
+        
+        {/* Add a fallback for any page not found */}
+        <Route path="*" element={<h1>404: Page Not Found</h1>} />
       </Routes>
     </Layout>
   )

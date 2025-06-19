@@ -9,7 +9,7 @@ import { Textarea } from '../../components/ui/textarea';
 import { Button } from '../../components/ui/button';
 
 const submitRequest = async (requestData) => {
-    const { data } = await apiClient.post('/api/v1/requests', requestData);
+    const { data } = await apiClient.post('/requests', requestData);
     return data;
 };
 
