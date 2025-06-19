@@ -42,14 +42,14 @@ const userRoutes = require('./routes/userRoutes');
 
 
 // mount the comment API routes
-app.use("/api/v1/comments", commentRoutes);
+app.use("/comments", commentRoutes);
 // mount the like API routes
-app.use("/api/v1/likes", likeRoutes);
+app.use("/likes", likeRoutes);
 // mount the posts API routes
-app.use("/api/v1/posts", postRoutes);
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/requests', requestRoutes); 
-app.use('/api/v1/users', userRoutes);
+app.use("/posts", postRoutes);
+app.use('/auth', authRoutes);
+app.use('/requests', requestRoutes); 
+app.use('/users', userRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
